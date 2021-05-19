@@ -36,6 +36,8 @@ class MyHomePage extends StatelessWidget {
 }
 
 class NavigationExample extends StatelessWidget {
+  final SuggestionsBoxController controller = SuggestionsBoxController();
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -45,7 +47,61 @@ class NavigationExample extends StatelessWidget {
           SizedBox(
             height: 10.0,
           ),
+          RawAutocomplete(
+            optionsViewBuilder: (BuildContext context,
+                AutocompleteOnSelected<String> onSelected,
+                Iterable<String> options) {
+              return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    elevation: 4.0,
+                    child: SizedBox(
+                      height: 200.0,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(8.0),
+                        itemCount: options.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final String option = options.elementAt(index);
+                          return GestureDetector(
+                            onTap: () {
+                              onSelected(option);
+                            },
+                            child: ListTile(
+                              title: Text(option),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ));
+            },
+            optionsBuilder: (TextEditingValue textEditingValue) {
+              return [
+                textEditingValue.text + '1234',
+                textEditingValue.text + '12345',
+                textEditingValue.text + '1234657564'
+              ].where((String option) {
+                return option.contains(textEditingValue.text.toLowerCase());
+              });
+            },
+            fieldViewBuilder: (BuildContext context,
+                TextEditingController textEditingController,
+                FocusNode focusNode,
+                VoidCallback onFieldSubmitted) {
+              return TextFormField(
+                controller: textEditingController,
+                focusNode: focusNode,
+                minLines: 1,
+                maxLines: 4,
+                onFieldSubmitted: (String value) {
+                  onFieldSubmitted();
+                },
+              );
+            },
+          ),
           TypeAheadField(
+            suggestionsBoxController: controller,
+            keepSuggestionsOnLoading: true,
             textFieldConfiguration: TextFieldConfiguration(
               autofocus: true,
               style: DefaultTextStyle.of(context)

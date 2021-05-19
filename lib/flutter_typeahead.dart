@@ -232,6 +232,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:flutter_typeahead/size_listener.dart';
 
 typedef FutureOr<Iterable<T>> SuggestionsCallback<T>(String pattern);
 typedef Widget ItemBuilder<T>(BuildContext context, T itemData);
@@ -905,37 +906,40 @@ class _TypeAheadFieldState<T> extends State<TypeAheadField<T>>
   Widget build(BuildContext context) {
     return CompositedTransformTarget(
       link: this._layerLink,
-      child: TextField(
-        focusNode: this._effectiveFocusNode,
-        controller: this._effectiveController,
-        decoration: widget.textFieldConfiguration.decoration,
-        style: widget.textFieldConfiguration.style,
-        textAlign: widget.textFieldConfiguration.textAlign,
-        enabled: widget.textFieldConfiguration.enabled,
-        keyboardType: widget.textFieldConfiguration.keyboardType,
-        autofocus: widget.textFieldConfiguration.autofocus,
-        inputFormatters: widget.textFieldConfiguration.inputFormatters,
-        autocorrect: widget.textFieldConfiguration.autocorrect,
-        maxLines: widget.textFieldConfiguration.maxLines,
-        minLines: widget.textFieldConfiguration.minLines,
-        maxLength: widget.textFieldConfiguration.maxLength,
-        maxLengthEnforced: widget.textFieldConfiguration.maxLengthEnforced,
-        obscureText: widget.textFieldConfiguration.obscureText,
-        onChanged: widget.textFieldConfiguration.onChanged,
-        onSubmitted: widget.textFieldConfiguration.onSubmitted,
-        onEditingComplete: widget.textFieldConfiguration.onEditingComplete,
-        onTap: widget.textFieldConfiguration.onTap,
-        scrollPadding: widget.textFieldConfiguration.scrollPadding,
-        textInputAction: widget.textFieldConfiguration.textInputAction,
-        textCapitalization: widget.textFieldConfiguration.textCapitalization,
-        keyboardAppearance: widget.textFieldConfiguration.keyboardAppearance,
-        cursorWidth: widget.textFieldConfiguration.cursorWidth,
-        cursorRadius: widget.textFieldConfiguration.cursorRadius,
-        cursorColor: widget.textFieldConfiguration.cursorColor,
-        textDirection: widget.textFieldConfiguration.textDirection,
-        enableInteractiveSelection:
-            widget.textFieldConfiguration.enableInteractiveSelection,
-        readOnly: widget.hideKeyboard,
+      child: SizeListener(
+        onChange: (_) => _suggestionsBox?.resize(),
+        child: TextField(
+          focusNode: this._effectiveFocusNode,
+          controller: this._effectiveController,
+          decoration: widget.textFieldConfiguration.decoration,
+          style: widget.textFieldConfiguration.style,
+          textAlign: widget.textFieldConfiguration.textAlign,
+          enabled: widget.textFieldConfiguration.enabled,
+          keyboardType: widget.textFieldConfiguration.keyboardType,
+          autofocus: widget.textFieldConfiguration.autofocus,
+          inputFormatters: widget.textFieldConfiguration.inputFormatters,
+          autocorrect: widget.textFieldConfiguration.autocorrect,
+          maxLines: widget.textFieldConfiguration.maxLines,
+          minLines: widget.textFieldConfiguration.minLines,
+          maxLength: widget.textFieldConfiguration.maxLength,
+          maxLengthEnforced: widget.textFieldConfiguration.maxLengthEnforced,
+          obscureText: widget.textFieldConfiguration.obscureText,
+          onChanged: widget.textFieldConfiguration.onChanged,
+          onSubmitted: widget.textFieldConfiguration.onSubmitted,
+          onEditingComplete: widget.textFieldConfiguration.onEditingComplete,
+          onTap: widget.textFieldConfiguration.onTap,
+          scrollPadding: widget.textFieldConfiguration.scrollPadding,
+          textInputAction: widget.textFieldConfiguration.textInputAction,
+          textCapitalization: widget.textFieldConfiguration.textCapitalization,
+          keyboardAppearance: widget.textFieldConfiguration.keyboardAppearance,
+          cursorWidth: widget.textFieldConfiguration.cursorWidth,
+          cursorRadius: widget.textFieldConfiguration.cursorRadius,
+          cursorColor: widget.textFieldConfiguration.cursorColor,
+          textDirection: widget.textFieldConfiguration.textDirection,
+          enableInteractiveSelection:
+              widget.textFieldConfiguration.enableInteractiveSelection,
+          readOnly: widget.hideKeyboard,
+        ),
       ),
     );
   }
@@ -989,7 +993,7 @@ class _SuggestionsList<T> extends StatefulWidget {
 }
 
 class _SuggestionsListState<T> extends State<_SuggestionsList<T>>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   Iterable<T>? _suggestions;
   late bool _suggestionsValid;
   late VoidCallback _controllerListener;
@@ -1089,7 +1093,7 @@ class _SuggestionsListState<T> extends State<_SuggestionsList<T>>
         // if it wasn't removed in the meantime
         setState(() {
           double? animationStart = widget.animationStart;
-            // allow suggestionsCallback to return null and not throw error here
+          // allow suggestionsCallback to return null and not throw error here
           if (error != null || suggestions?.isEmpty == true) {
             animationStart = 1.0;
           }
@@ -1142,13 +1146,17 @@ class _SuggestionsListState<T> extends State<_SuggestionsList<T>>
 
     var animationChild = widget.transitionBuilder != null
         ? widget.transitionBuilder!(context, child, this._animationController)
-        : SizeTransition(
-            axisAlignment: -1.0,
-            sizeFactor: CurvedAnimation(
-                parent: this._animationController!,
-                curve: Curves.fastOutSlowIn),
+        : AnimatedSize(
+            duration: Duration(seconds: 2),
+            vsync: this,
             child: child,
           );
+    // SizeTransition(
+    //   axisAlignment: -1.0,
+    //   sizeFactor: CurvedAnimation(
+    //       parent: this._animationController!, curve: Curves.fastOutSlowIn),
+    //   child: child,
+    // );
 
     BoxConstraints constraints;
     if (widget.decoration!.constraints == null) {
@@ -1396,7 +1404,7 @@ class TextFieldConfiguration {
   /// The maximum number of lines for the text to span, wrapping if necessary.
   ///
   /// Same as [TextField.maxLines](https://docs.flutter.io/flutter/material/TextField/maxLines.html)
-  final int maxLines;
+  final int? maxLines;
 
   /// The minimum number of lines to occupy when the content spans fewer lines.
   ///
@@ -1488,7 +1496,7 @@ class TextFieldConfiguration {
     this.obscureText: false,
     this.maxLengthEnforced: true,
     this.maxLength,
-    this.maxLines: 1,
+    this.maxLines,
     this.minLines,
     this.autocorrect: true,
     this.inputFormatters,
