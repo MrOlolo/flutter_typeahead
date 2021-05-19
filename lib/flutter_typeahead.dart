@@ -807,7 +807,8 @@ class _TypeAheadFieldState<T> extends State<TypeAheadField<T>>
         this._suggestionsBox!.resize();
 
         // in case we already missed the focus event
-        if (this._effectiveFocusNode!.hasFocus) {
+        if (this._effectiveFocusNode!.hasFocus &&
+            !widget.openSuggestionsOnDataChange) {
           this._suggestionsBox!.open();
         }
       }
