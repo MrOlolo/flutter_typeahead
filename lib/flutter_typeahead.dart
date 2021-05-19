@@ -292,7 +292,8 @@ class TypeAheadFormField<T> extends FormField<String> {
       bool keepSuggestionsOnSuggestionSelected: false,
       bool autoFlipDirection: false,
       bool hideKeyboard: false,
-      bool unfocusOnSuggestionSelected: false})
+      bool unfocusOnSuggestionSelected: false,
+      bool openSuggestionsOnDataChange: true})
       : assert(
             initialValue == null || textFieldConfiguration.controller == null),
         super(
@@ -343,6 +344,7 @@ class TypeAheadFormField<T> extends FormField<String> {
                 autoFlipDirection: autoFlipDirection,
                 hideKeyboard: hideKeyboard,
                 unfocusOnSuggestionSelected: unfocusOnSuggestionSelected,
+                openSuggestionsOnDataChange: openSuggestionsOnDataChange,
               );
             });
 
@@ -674,6 +676,8 @@ class TypeAheadField<T> extends StatefulWidget {
 
   final bool unfocusOnSuggestionSelected;
 
+  final bool openSuggestionsOnDataChange;
+
   /// Creates a [TypeAheadField]
   TypeAheadField(
       {Key? key,
@@ -701,7 +705,8 @@ class TypeAheadField<T> extends StatefulWidget {
       this.keepSuggestionsOnSuggestionSelected: false,
       this.autoFlipDirection: false,
       this.hideKeyboard: false,
-      this.unfocusOnSuggestionSelected: false})
+      this.unfocusOnSuggestionSelected: false,
+      this.openSuggestionsOnDataChange: true})
       : assert(animationStart >= 0.0 && animationStart <= 1.0),
         assert(
             direction == AxisDirection.down || direction == AxisDirection.up),
@@ -777,6 +782,7 @@ class _TypeAheadFieldState<T> extends State<TypeAheadField<T>>
         this._effectiveFocusNode;
 
     this._focusNodeListener = () {
+      if (widget.openSuggestionsOnDataChange) return;
       if (_effectiveFocusNode!.hasFocus) {
         this._suggestionsBox!.open();
       } else {
@@ -932,7 +938,12 @@ class _TypeAheadFieldState<T> extends State<TypeAheadField<T>>
           maxLength: widget.textFieldConfiguration.maxLength,
           maxLengthEnforced: widget.textFieldConfiguration.maxLengthEnforced,
           obscureText: widget.textFieldConfiguration.obscureText,
-          onChanged: widget.textFieldConfiguration.onChanged,
+          onChanged: (text) {
+            if (widget.openSuggestionsOnDataChange) {
+              _suggestionsBox!.open();
+            }
+            widget.textFieldConfiguration.onChanged?.call(text);
+          },
           onSubmitted: widget.textFieldConfiguration.onSubmitted,
           onEditingComplete: widget.textFieldConfiguration.onEditingComplete,
           onTap: widget.textFieldConfiguration.onTap,
