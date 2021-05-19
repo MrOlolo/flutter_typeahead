@@ -782,8 +782,8 @@ class _TypeAheadFieldState<T> extends State<TypeAheadField<T>>
         this._effectiveFocusNode;
 
     this._focusNodeListener = () {
-      if (widget.openSuggestionsOnDataChange) return;
-      if (_effectiveFocusNode!.hasFocus) {
+      if (_effectiveFocusNode!.hasFocus &&
+          !widget.openSuggestionsOnDataChange) {
         this._suggestionsBox!.open();
       } else {
         this._suggestionsBox!.close();
