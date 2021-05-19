@@ -1143,7 +1143,19 @@ class _SuggestionsListState<T> extends State<_SuggestionsList<T>>
     Widget child;
     if (this._isLoading!) {
       if (widget.hideOnLoading!) {
-        child = Container(height: 0);
+        if (widget.keepSuggestionsOnLoading! && this._suggestions != null) {
+          if (this._suggestions!.isEmpty) {
+            if (widget.hideOnEmpty!) {
+              child = Container(height: 0);
+            } else {
+              child = createNoItemsFoundWidget();
+            }
+          } else {
+            child = createSuggestionsWidget();
+          }
+        } else {
+          child = Container(height: 0);
+        }
       } else {
         child = createLoadingWidget();
       }
@@ -1212,7 +1224,11 @@ class _SuggestionsListState<T> extends State<_SuggestionsList<T>>
 
     if (widget.keepSuggestionsOnLoading! && this._suggestions != null) {
       if (this._suggestions!.isEmpty) {
-        child = createNoItemsFoundWidget();
+        if (widget.hideOnEmpty!) {
+          child = Container(height: 0);
+        } else {
+          child = createNoItemsFoundWidget();
+        }
       } else {
         child = createSuggestionsWidget();
       }
