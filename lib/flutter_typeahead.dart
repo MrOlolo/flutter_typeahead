@@ -238,6 +238,7 @@ typedef FutureOr<Iterable<T>> SuggestionsCallback<T>(String pattern);
 typedef Widget ItemBuilder<T>(BuildContext context, T itemData);
 typedef void SuggestionSelectionCallback<T>(T suggestion);
 typedef Widget ErrorBuilder(BuildContext context, Object? error);
+typedef Widget ChildWrapper(BuildContext context, Widget child);
 
 typedef AnimationTransitionBuilder(
     BuildContext context, Widget child, AnimationController? controller);
@@ -293,7 +294,8 @@ class TypeAheadFormField<T> extends FormField<String> {
       bool autoFlipDirection: false,
       bool hideKeyboard: false,
       bool unfocusOnSuggestionSelected: false,
-      bool openSuggestionsOnDataChange: true})
+      bool openSuggestionsOnDataChange: true,
+      ChildWrapper? childWrapper})
       : assert(
             initialValue == null || textFieldConfiguration.controller == null),
         super(
@@ -345,6 +347,7 @@ class TypeAheadFormField<T> extends FormField<String> {
                 hideKeyboard: hideKeyboard,
                 unfocusOnSuggestionSelected: unfocusOnSuggestionSelected,
                 openSuggestionsOnDataChange: openSuggestionsOnDataChange,
+                childWrapper: childWrapper,
               );
             });
 
@@ -678,6 +681,8 @@ class TypeAheadField<T> extends StatefulWidget {
 
   final bool openSuggestionsOnDataChange;
 
+  final ChildWrapper? childWrapper;
+
   /// Creates a [TypeAheadField]
   TypeAheadField(
       {Key? key,
@@ -706,7 +711,8 @@ class TypeAheadField<T> extends StatefulWidget {
       this.autoFlipDirection: false,
       this.hideKeyboard: false,
       this.unfocusOnSuggestionSelected: false,
-      this.openSuggestionsOnDataChange: true})
+      this.openSuggestionsOnDataChange: true,
+      this.childWrapper})
       : assert(animationStart >= 0.0 && animationStart <= 1.0),
         assert(
             direction == AxisDirection.down || direction == AxisDirection.up),
@@ -927,9 +933,9 @@ class _TypeAheadFieldState<T> extends State<TypeAheadField<T>>
         alignment: Alignment.centerRight,
         child: SizeListener(
           onChange: (_) => _suggestionsBox?.resize(),
-          child: IntrinsicWidth(
-            stepWidth: 5,
-            child: TextField(
+          child: widget.childWrapper!(
+            context,
+            TextField(
               focusNode: this._effectiveFocusNode,
               controller: this._effectiveController,
               decoration: widget.textFieldConfiguration.decoration,

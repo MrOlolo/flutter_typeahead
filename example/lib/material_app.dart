@@ -110,6 +110,10 @@ class NavigationExample extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: TypeAheadField(
+              childWrapper: (_, child) => IntrinsicWidth(
+                child: child,
+                stepWidth: 5,
+              ),
               getImmediateSuggestions: true,
               openSuggestionsOnDataChange: true,
               keepSuggestionsOnLoading: true,
