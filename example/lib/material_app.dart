@@ -42,7 +42,7 @@ class NavigationExample extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(32.0),
-      child: Column(
+      child: ListView(
         children: <Widget>[
           SizedBox(
             height: 10.0,
@@ -52,11 +52,12 @@ class NavigationExample extends StatelessWidget {
                 AutocompleteOnSelected<String> onSelected,
                 Iterable<String> options) {
               return Align(
-                  alignment: Alignment.topLeft,
+                  alignment: Alignment.topRight,
                   child: Material(
                     elevation: 4.0,
                     child: SizedBox(
                       height: 200.0,
+                      width: 200,
                       child: ListView.builder(
                         padding: const EdgeInsets.all(8.0),
                         itemCount: options.length,
@@ -88,43 +89,67 @@ class NavigationExample extends StatelessWidget {
                 TextEditingController textEditingController,
                 FocusNode focusNode,
                 VoidCallback onFieldSubmitted) {
-              return TextFormField(
-                controller: textEditingController,
-                focusNode: focusNode,
-                minLines: 1,
-                maxLines: 4,
-                onFieldSubmitted: (String value) {
-                  onFieldSubmitted();
-                },
+              return Align(
+                alignment: Alignment.centerRight,
+                child: IntrinsicWidth(
+                  stepWidth: 5,
+                  child: TextFormField(
+                    decoration: InputDecoration(hintText: 'test'),
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    minLines: 1,
+                    maxLines: 4,
+                    onFieldSubmitted: (String value) {
+                      onFieldSubmitted();
+                    },
+                  ),
+                ),
               );
             },
           ),
-          TypeAheadField(
-            suggestionsBoxController: controller,
-            keepSuggestionsOnLoading: true,
-            textFieldConfiguration: TextFieldConfiguration(
-              autofocus: true,
-              style: DefaultTextStyle.of(context)
-                  .style
-                  .copyWith(fontStyle: FontStyle.italic),
-              decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'What are you looking for?'),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TypeAheadField(
+              getImmediateSuggestions: true,
+              openSuggestionsOnDataChange: true,
+              keepSuggestionsOnLoading: true,
+              hideOnLoading: true,
+              hideOnEmpty: true,
+              hideOnError: true,
+              suggestionsBoxController: controller,
+              textFieldConfiguration: TextFieldConfiguration(
+                autofocus: true,
+                style: DefaultTextStyle.of(context)
+                    .style
+                    .copyWith(fontStyle: FontStyle.italic),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(), hintText: 'What are'),
+              ),
+              suggestionsCallback: (pattern) async {
+                return await BackendService.getSuggestions(pattern);
+              },
+              itemBuilder: (context, Map<String, String> suggestion) {
+                return ListTile(
+                  leading: Icon(Icons.shopping_cart),
+                  title: Text(suggestion['name']!),
+                  subtitle: Text('\$${suggestion['price']}'),
+                );
+              },
+              onSuggestionSelected: (Map<String, String> suggestion) {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => ProductPage(product: suggestion)));
+              },
+              suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                constraints: BoxConstraints(minWidth: 300, maxWidth: 350),
+                clipBehavior: Clip.hardEdge,
+                // elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
             ),
-            suggestionsCallback: (pattern) async {
-              return await BackendService.getSuggestions(pattern);
-            },
-            itemBuilder: (context, Map<String, String> suggestion) {
-              return ListTile(
-                leading: Icon(Icons.shopping_cart),
-                title: Text(suggestion['name']!),
-                subtitle: Text('\$${suggestion['price']}'),
-              );
-            },
-            onSuggestionSelected: (Map<String, String> suggestion) {
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => ProductPage(product: suggestion)));
-            },
+          ),
+          SizedBox(
+            height: 500,
           ),
         ],
       ),

@@ -845,6 +845,10 @@ class _TypeAheadFieldState<T> extends State<TypeAheadField<T>>
 
   void _initOverlayEntry() {
     this._suggestionsBox!._overlayEntry = OverlayEntry(builder: (context) {
+      RenderBox? renderBox = context.findRenderObject() as RenderBox?;
+      var anchorSize = renderBox?.size;
+      print(anchorSize);
+      print(anchorSize?.width);
       final suggestionsList = _SuggestionsList<T>(
         suggestionsBox: _suggestionsBox,
         decoration: widget.suggestionsBoxDecoration,
@@ -894,25 +898,23 @@ class _TypeAheadFieldState<T> extends State<TypeAheadField<T>>
         }
       }
 
-      return Positioned(
-        width: w,
-        child: CompositedTransformFollower(
-          link: this._layerLink,
-          showWhenUnlinked: false,
-          offset: Offset(
-              widget.suggestionsBoxDecoration.offsetX,
-              _suggestionsBox!.direction == AxisDirection.down
-                  ? _suggestionsBox!.textBoxHeight +
-                      widget.suggestionsBoxVerticalOffset
-                  : _suggestionsBox!.directionUpOffset),
-          child: _suggestionsBox!.direction == AxisDirection.down
-              ? suggestionsList
-              : FractionalTranslation(
-                  translation:
-                      Offset(0.0, -1.0), // visually flips list to go up
-                  child: suggestionsList,
-                ),
-        ),
+      return CompositedTransformFollower(
+        link: this._layerLink,
+        showWhenUnlinked: false,
+        // targetAnchor: Alignment.bottomLeft,
+        // followerAnchor: Alignment.centerRight,
+        offset: Offset(
+            widget.suggestionsBoxDecoration.offsetX,
+            _suggestionsBox!.direction == AxisDirection.down
+                ? _suggestionsBox!.textBoxHeight +
+                    widget.suggestionsBoxVerticalOffset
+                : _suggestionsBox!.directionUpOffset),
+        child: _suggestionsBox!.direction == AxisDirection.down
+            ? suggestionsList
+            : FractionalTranslation(
+                translation: Offset(0.0, -1.0), // visually flips list to go up
+                child: suggestionsList,
+              ),
       );
     });
   }
@@ -921,44 +923,54 @@ class _TypeAheadFieldState<T> extends State<TypeAheadField<T>>
   Widget build(BuildContext context) {
     return CompositedTransformTarget(
       link: this._layerLink,
-      child: SizeListener(
-        onChange: (_) => _suggestionsBox?.resize(),
-        child: TextField(
-          focusNode: this._effectiveFocusNode,
-          controller: this._effectiveController,
-          decoration: widget.textFieldConfiguration.decoration,
-          style: widget.textFieldConfiguration.style,
-          textAlign: widget.textFieldConfiguration.textAlign,
-          enabled: widget.textFieldConfiguration.enabled,
-          keyboardType: widget.textFieldConfiguration.keyboardType,
-          autofocus: widget.textFieldConfiguration.autofocus,
-          inputFormatters: widget.textFieldConfiguration.inputFormatters,
-          autocorrect: widget.textFieldConfiguration.autocorrect,
-          maxLines: widget.textFieldConfiguration.maxLines,
-          minLines: widget.textFieldConfiguration.minLines,
-          maxLength: widget.textFieldConfiguration.maxLength,
-          maxLengthEnforced: widget.textFieldConfiguration.maxLengthEnforced,
-          obscureText: widget.textFieldConfiguration.obscureText,
-          onChanged: (text) {
-            if (widget.openSuggestionsOnDataChange) {
-              _suggestionsBox!.open();
-            }
-            widget.textFieldConfiguration.onChanged?.call(text);
-          },
-          onSubmitted: widget.textFieldConfiguration.onSubmitted,
-          onEditingComplete: widget.textFieldConfiguration.onEditingComplete,
-          onTap: widget.textFieldConfiguration.onTap,
-          scrollPadding: widget.textFieldConfiguration.scrollPadding,
-          textInputAction: widget.textFieldConfiguration.textInputAction,
-          textCapitalization: widget.textFieldConfiguration.textCapitalization,
-          keyboardAppearance: widget.textFieldConfiguration.keyboardAppearance,
-          cursorWidth: widget.textFieldConfiguration.cursorWidth,
-          cursorRadius: widget.textFieldConfiguration.cursorRadius,
-          cursorColor: widget.textFieldConfiguration.cursorColor,
-          textDirection: widget.textFieldConfiguration.textDirection,
-          enableInteractiveSelection:
-              widget.textFieldConfiguration.enableInteractiveSelection,
-          readOnly: widget.hideKeyboard,
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: SizeListener(
+          onChange: (_) => _suggestionsBox?.resize(),
+          child: IntrinsicWidth(
+            stepWidth: 5,
+            child: TextField(
+              focusNode: this._effectiveFocusNode,
+              controller: this._effectiveController,
+              decoration: widget.textFieldConfiguration.decoration,
+              style: widget.textFieldConfiguration.style,
+              textAlign: widget.textFieldConfiguration.textAlign,
+              enabled: widget.textFieldConfiguration.enabled,
+              keyboardType: widget.textFieldConfiguration.keyboardType,
+              autofocus: widget.textFieldConfiguration.autofocus,
+              inputFormatters: widget.textFieldConfiguration.inputFormatters,
+              autocorrect: widget.textFieldConfiguration.autocorrect,
+              maxLines: widget.textFieldConfiguration.maxLines,
+              minLines: widget.textFieldConfiguration.minLines,
+              maxLength: widget.textFieldConfiguration.maxLength,
+              maxLengthEnforced:
+                  widget.textFieldConfiguration.maxLengthEnforced,
+              obscureText: widget.textFieldConfiguration.obscureText,
+              onChanged: (text) {
+                if (widget.openSuggestionsOnDataChange) {
+                  _suggestionsBox!.open();
+                }
+                widget.textFieldConfiguration.onChanged?.call(text);
+              },
+              onSubmitted: widget.textFieldConfiguration.onSubmitted,
+              onEditingComplete:
+                  widget.textFieldConfiguration.onEditingComplete,
+              onTap: widget.textFieldConfiguration.onTap,
+              scrollPadding: widget.textFieldConfiguration.scrollPadding,
+              textInputAction: widget.textFieldConfiguration.textInputAction,
+              textCapitalization:
+                  widget.textFieldConfiguration.textCapitalization,
+              keyboardAppearance:
+                  widget.textFieldConfiguration.keyboardAppearance,
+              cursorWidth: widget.textFieldConfiguration.cursorWidth,
+              cursorRadius: widget.textFieldConfiguration.cursorRadius,
+              cursorColor: widget.textFieldConfiguration.cursorColor,
+              textDirection: widget.textFieldConfiguration.textDirection,
+              enableInteractiveSelection:
+                  widget.textFieldConfiguration.enableInteractiveSelection,
+              readOnly: widget.hideKeyboard,
+            ),
+          ),
         ),
       ),
     );
@@ -1204,16 +1216,22 @@ class _SuggestionsListState<T> extends State<_SuggestionsList<T>>
       );
     }
 
-    var container = Material(
-      elevation: widget.decoration!.elevation,
-      color: widget.decoration!.color,
-      shape: widget.decoration!.shape,
-      borderRadius: widget.decoration!.borderRadius,
-      shadowColor: widget.decoration!.shadowColor,
-      clipBehavior: widget.decoration!.clipBehavior,
-      child: ConstrainedBox(
-        constraints: constraints,
-        child: animationChild,
+    var container = Align(
+      alignment: Alignment.topLeft,
+      child: SizedBox(
+        width: widget.decoration?.constraints?.maxWidth,
+        child: Material(
+          elevation: widget.decoration!.elevation,
+          color: widget.decoration!.color,
+          shape: widget.decoration!.shape,
+          borderRadius: widget.decoration!.borderRadius,
+          shadowColor: widget.decoration!.shadowColor,
+          clipBehavior: widget.decoration!.clipBehavior,
+          child: ConstrainedBox(
+            constraints: constraints,
+            child: animationChild,
+          ),
+        ),
       ),
     );
 
